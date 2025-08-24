@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeatherNow Pro - Advanced Weather App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="app-title">WeatherNow Pro</h1>
+            <p class="subtitle">Advanced weather app with database persistence and CRUD operations</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="current">🌤️ Current Weather</button>
+            <button class="nav-tab" data-tab="create">➕ Add Record</button>
+            <button class="nav-tab" data-tab="records">📊 View Records</button>
+            <button class="nav-tab" data-tab="export">📥 Export Data</button>
+        </div>
+
+        <!-- Current Weather Tab -->
+        <div class="tab-content active" id="current">
+            <div class="search-container">
+                <div class="form-row">
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        id="locationInput" 
+                        placeholder="Enter city, zip code, coordinates, or landmark..."
+                    >
+                    <button class="btn btn-primary" id="searchBtn">🔍 Search</button>
+                    <button class="btn btn-secondary" id="currentLocationBtn">📍 My Location</button>
+                </div>
+            </div>
+
+            <div id="loadingDiv" class="loading hidden">
+                <div class="spinner"></div>
+                Fetching weather data...
+            </div>
+
+            <div id="errorDiv" class="error hidden"></div>
+            <div id="successDiv" class="success hidden"></div>
+
+            <div id="weatherContent" class="weather-content hidden">
+                <div class="current-weather">
+                    <div class="weather-location" id="locationName"></div>
+                    <div class="weather-main">
+                        <div class="weather-icon" id="currentIcon"></div>
+                        <div class="weather-temp" id="currentTemp"></div>
+                    </div>
+                    <div class="weather-description" id="currentDesc"></div>
+                    <div class="weather-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Feels Like</div>
+                            <div class="detail-value" id="feelsLike"></div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Humidity</div>
+                            <div class="detail-value" id="humidity"></div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Wind</div>
+                            <div class="detail-value" id="windSpeed"></div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Pressure</div>
+                            <div class="detail-value" id="pressure"></div>
+                        </div>
+                    </div>
+
+                    <div class="api-integration">
+                        <button class="btn btn-success" id="showMapBtn">🗺️ Show on Map</button>
+                        <button class="btn btn-success" id="showVideosBtn">📹 Location Videos</button>
+                    </div>
+                </div>
+
+                <div class="forecast-container">
+                    <h2>5-Day Forecast</h2>
+                    <div id="forecastList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Record Tab -->
+        <div class="tab-content" id="create">
+            <div class="search-container">
+                <h2 style="margin-bottom: 20px;">📝 Add Weather Record</h2>
+                <form id="createForm">
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-input" id="createLocation" 
+                               placeholder="City, zip code, coordinates..." required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-input" id="startDate" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-input" id="endDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <button type="submit" class="btn btn-primary">💾 Save Weather Data</button>
+                        <button type="reset" class="btn btn-secondary">🔄 Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Records Tab -->
+        <div class="tab-content" id="records">
+            <div class="records-container">
+                <h2>📊 Weather Records Database</h2>
+                <div class="export-buttons">
+                    <button class="btn btn-success" id="refreshRecords">🔄 Refresh</button>
+                    <input type="text" class="form-input" id="searchRecords" 
+                           placeholder="Search records..." style="max-width: 300px;">
+                </div>
+                
+                <div id="recordsTable"></div>
+            </div>
+        </div>
+
+        <!-- Export Tab -->
+        <div class="tab-content" id="export">
+            <div class="search-container">
+                <h2>📥 Export Weather Data</h2>
+                <p style="margin-bottom: 20px; opacity: 0.9;">
+                    Export your weather records in various formats
+                </p>
+                
+                <div class="export-buttons">
+                    <button class="btn btn-primary" id="exportJSON">📄 Export JSON</button>
+                    <button class="btn btn-primary" id="exportCSV">📊 Export CSV</button>
+                    <button class="btn btn-primary" id="exportXML">📋 Export XML</button>
+                    <button class="btn btn-primary" id="exportMD">📝 Export Markdown</button>
+                </div>
+                
+                <div id="exportPreview" class="api-content hidden">
+                    <h3>Export Preview:</h3>
+                    <pre id="exportContent" style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; overflow-x: auto;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">✏️ Edit Weather Record</h3>
+                <button class="close-btn" onclick="closeModal('editModal')">&times;</button>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input type="text" class="form-input" id="editLocation" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" class="form-input" id="editStartDate" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">End Date</label>
+                        <input type="date" class="form-input" id="editEndDate" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <button type="submit" class="btn btn-primary">💾 Update Record</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">❌ Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="mapModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3 class="modal-title">🗺️ Location Map</h3>
+                <button class="close-btn" onclick="closeModal('mapModal')">&times;</button>
+            </div>
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="videosModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 class="modal-title">📹 Location Videos</h3>
+                <button class="close-btn" onclick="closeModal('videosModal')">&times;</button>
+            </div>
+            <div id="videosContent" class="youtube-videos"></div>
+        </div>
+    </div>
+    <script src="script1.js"></script>
+</body>
+</html>
